@@ -218,10 +218,10 @@ pip-log.txt
 ## Java
 #############
 
-.class
+*.class
 
 #############
 ## Windows
 #############
 
-.exe
+*.exe
