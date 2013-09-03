@@ -1,6 +1,5 @@
 // Sep 3, 13
 // Weighted, with Path Compression
-// PROVE max tree height = lg (2) n
 
 #include <stdio.h>
 #include <stdlib.h>
