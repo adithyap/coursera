@@ -6,29 +6,29 @@ public class Percolation{
 	private int top;
 	private int bottom;
    
-	public Percolation(int n){
+	public Percolation(int N){
 		int i, j;
 
-		rowSize = n;
+		rowSize = N;
 
-		top = linearIndex(n-1, n-1) + 1;	// virtual root to top nodes (n*n)
-		bottom = linearIndex(n-1, n-1) + 2;	// virtual root to bottom nodes (n*n + 1)
+		top = linearIndex(N-1, N-1) + 1;	// virtual root to top nodes (N*N)
+		bottom = linearIndex(N-1, N-1) + 2;	// virtual root to bottom nodes (N*N + 1)
 
-		state = new boolean[n][n];
+		state = new boolean[N][N];
 
-		for(i = 0; i < n; i++){
-			for(j = 0; j < n; j++){
+		for(i = 0; i < N; i++){
+			for(j = 0; j < N; j++){
 				state[i][j] = false;
 			}
 		}
 		
-		grid = new UnionFind((n * n) + 2);
+		grid = new UnionFind((N * N) + 2);
 
-		for(i = 0; i < n; i++){
+		for(i = 0; i < N; i++){
 			grid.union(linearIndex(0, i), top);
 		}
 
-		for(i = 0; i < n; i++){
+		for(i = 0; i < N; i++){
 			grid.union(linearIndex(rowSize - 1, i), bottom);
 		}
 	}
