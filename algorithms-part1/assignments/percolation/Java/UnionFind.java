@@ -1,4 +1,5 @@
 public class UnionFind{
+	
 	private int[] id;
 	private int[] subElementCount;
 	int count;

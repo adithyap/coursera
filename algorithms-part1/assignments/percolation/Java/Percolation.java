@@ -34,6 +34,11 @@ public class Percolation{
 	}
 
 	public void open(int i, int j){
+
+		if(!isValidIndex(i, j)){
+			throw new java.lang.IndexOutOfBoundsException("i = " + i + ", j = " + j);
+		}
+
 		if(isOpen(i-1, j)){
 			grid.union(linearIndex(i-1, j), linearIndex(i, j));
 		}
@@ -50,9 +55,7 @@ public class Percolation{
 			grid.union(linearIndex(i, j+1), linearIndex(i, j));
 		}
 
-		if(isValidIndex(i, j)){
-			state[i][j] = true;
-		}
+		state[i][j] = true;
 	}
 
 	public boolean isOpen(int i, int j){
@@ -67,7 +70,7 @@ public class Percolation{
 		if(!isValidIndex(i, j)){
 			return false;
 		}
-
+		
 		return grid.find(linearIndex(i, j), top);
 	}
 

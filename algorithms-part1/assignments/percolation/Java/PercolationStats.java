@@ -1,7 +1,6 @@
-import java.io.*;
 import java.util.Random;
 
-public class PercolationStats {
+public class PercolationStats{
 
 	private int n;
 	private int t;
@@ -56,13 +55,17 @@ public class PercolationStats {
 
 	public void runSimulation(){
 
+		Percolation p;
+		int openSites;
+		int i, j;
+		int limit;
+
 		for(int k = 0; k < t; k++){
 
-			Percolation p = new Percolation(n);
-			int openSites = 0;
+			p = new Percolation(n);
+			openSites = 0;
 
-			int i, j;
-			int limit = n * n;
+			limit = n * n;
 
 			while(limit > 0){
 				
@@ -85,13 +88,6 @@ public class PercolationStats {
 		}
 	}
 
-	public void displayTreshold(){
-		for(int i = 0; i < t; i++){
-			System.out.print(threshold[i] + ", ");
-		}
-		System.out.println();
-	}
-
 	private int randInt(int min, int max) {
 	    Random rand = new Random();
 	    int randomNum = rand.nextInt((max - min) + 1) + min;
@@ -99,18 +95,33 @@ public class PercolationStats {
 	    return randomNum;
 	}
 
-	public static void main(String[] args){
+	public static void main(String[] args) 
+		throws java.lang.IndexOutOfBoundsException, java.lang.IllegalArgumentException, java.lang.NumberFormatException{
 
 		if(args.length == 2){
-			int n = Integer.parseInt(args[0]);
-			int t = Integer.parseInt(args[1]);
 
-			PercolationStats ps = new PercolationStats(n, t);
-			ps.runSimulation();
+			try{
 
-			System.out.println("mean\t= " + ps.mean());
-			System.out.println("stddev\t= " + ps.stddev());
-			System.out.println("95% confidence interval\t= " + ps.confidenceLo() + ", " + ps.confidenceHi());
+				int n = Integer.parseInt(args[0]);
+				int t = Integer.parseInt(args[1]);
+
+				if (n <= 0 || t <= 0){
+					throw new java.lang.IllegalArgumentException("n = " + n + ", t = " + t);
+				}
+
+				PercolationStats ps = new PercolationStats(n, t);
+				ps.runSimulation();
+
+				System.out.println("mean\t= " + ps.mean());
+				System.out.println("stddev\t= " + ps.stddev());
+				System.out.println("95% confidence interval\t= " + ps.confidenceLo() + ", " + ps.confidenceHi());
+
+			} catch(java.lang.NumberFormatException ex){
+				throw ex;
+			} catch(java.lang.IllegalArgumentException ex){
+				throw ex;
+			}
+
 		}
 
 	}
