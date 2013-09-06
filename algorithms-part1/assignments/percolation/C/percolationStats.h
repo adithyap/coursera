@@ -30,6 +30,8 @@ int __random_number(int min_num, int max_num);
 
 // Define functions
 void percolationStats_init(percolationStats *ps, int N, int T){
+	srand(time(NULL)); // Seed random
+
 	ps->n = N;
 	ps->t = T;
 
@@ -85,17 +87,19 @@ void percolationStats_runSimulation(percolationStats *ps){
 	percolation p;
 	int openSites;
 	int i, j, k;
-	int limit;
+	int elements;
+	int opened;
 
 	for(k = 0; k < ps->t; k++){
 
 		percolation_init(&p, ps->n);
 		openSites = 0;
+		
+		elements = ps->n * ps->n;
 
-		limit = ps->n * ps->n;
+		while(elements > 0){
+			opened = 0;
 
-		while(limit > 0){
-			
 			i = __random_number(0, ps->n - 1);
 			j = __random_number(0, ps->n - 1);
 
@@ -104,13 +108,22 @@ void percolationStats_runSimulation(percolationStats *ps){
 				percolation_open(&p, i, j);
 				openSites++;
 
-				if(percolation_percolates(&p)){
-					vector_append(&ps->threshold, openSites);
-					break;
-				}
-
-				limit--;
+				opened = 1;
 			}
+			else if(!percolation_isOpen(&p, j, i)){
+
+				percolation_open(&p, j, i);
+				openSites++;
+
+				opened = 1;
+			}
+
+			if(opened && percolation_percolates(&p)){
+				vector_append(&ps->threshold, openSites);
+				break;
+			}
+
+			if(opened)	elements--;
 		}
 
 		percolation_dispose(&p);
@@ -123,21 +136,6 @@ void percolationStats_dispose(percolationStats *ps){
 
 int __random_number(int min_num, int max_num)
 {
-    int result = 0;
-    int low_num = 0;
-    int hi_num = 0;
-
-    if(min_num<max_num){
-
-        low_num=min_num;
-        hi_num=max_num+1;
-
-    } else{
-
-        low_num=max_num+1;
-        hi_num=min_num;
-    }
-
-    result = (rand()%(hi_num-low_num))+low_num;
+    int result = (rand() % (max_num - min_num + 1)) + min_num;
     return result;
 }

@@ -47,8 +47,6 @@ int vector_assign(vector *v, int index, int value){
 
 void vector_append(vector *v, int element){
 	if(v->used == v->size){
-		printf("Reallocating memory, size: %d\n", v->size);
-
 		v->size *= 2;
 		v->value = (int *)realloc(v->value, v->size * sizeof(int));
 	}

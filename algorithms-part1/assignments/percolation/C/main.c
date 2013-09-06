@@ -7,9 +7,6 @@ int main(int argc, char *argv[]){
 	int t;
 	char **ptr;
 
-	// Init random
-	srand(time(NULL));
-
 	percolationStats ps;
 
 	if(argc - 1 == 2){

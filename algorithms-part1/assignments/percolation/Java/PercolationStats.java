@@ -2,10 +2,18 @@ import java.util.Random;
 
 public class PercolationStats{
 
+	private static Random random;
+    private static long seed;
+
 	private int n;
 	private int t;
 
 	private int[] threshold;
+
+	static {
+        seed = System.currentTimeMillis();
+        random = new Random(seed);
+    }
 
 	public PercolationStats(int N, int T){
 		this.n = N;
@@ -58,41 +66,51 @@ public class PercolationStats{
 		Percolation p;
 		int openSites;
 		int i, j;
-		int limit;
+		int elements;
+		boolean opened;
 
 		for(int k = 0; k < t; k++){
 
 			p = new Percolation(n);
 			openSites = 0;
 
-			limit = n * n;
+			elements = n * n;
 
-			while(limit > 0){
+			while(elements > 0){
+
+				opened = false;
 				
 				i = randInt(0, n-1);
 				j = randInt(0, n-1);
 
 				if(!p.isOpen(i, j)){
 					
-					p.open(i,j);
+					p.open(i, j);
 					openSites++;
 
-					if(p.percolates()){
-						threshold[k] = openSites;
-						break;
-					}
+					opened = true;
 
-					limit--;
+				} else if(!p.isOpen(j, i)){
+
+					p.open(j, i);
+					openSites++;
+
+					opened = true;
 				}
+
+				if(opened && p.percolates()){
+					threshold[k] = openSites;
+					break;
+				}
+
+				if(opened)	elements--;
 			}
 		}
 	}
 
 	private int randInt(int min, int max) {
-	    Random rand = new Random();
-	    int randomNum = rand.nextInt((max - min) + 1) + min;
-
-	    return randomNum;
+		int randomNum = random.nextInt((max - min) + 1) + min;
+		return randomNum;
 	}
 
 	public static void main(String[] args) 
