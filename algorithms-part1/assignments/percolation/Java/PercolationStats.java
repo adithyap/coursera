@@ -1,146 +1,145 @@
-import java.util.Random;
-
 public class PercolationStats{
 
-	private static Random random;
-    private static long seed;
-
+    /**
+     * Edge size of the grid
+     */
 	private int n;
+
+    /**
+     * Number of operations in the simulation
+      */
 	private int t;
 
+    /**
+     * Holds the number of open sites at the I-th index when I operations were performed
+     */
 	private int[] threshold;
 
-	static {
-        seed = System.currentTimeMillis();
-        random = new Random(seed);
-    }
+    private double mean;
+    private double stdDev;
+    private double confidenceLo;
+    private double confidenceHi;
 
 	public PercolationStats(int N, int T){
 		this.n = N;
 		this.t = T;
 
 		threshold = new int[t];
+
+        // Run simulation to compute thresholds
+        runSimulation();
+
+        // Store mean and standard deviation
+        this.mean = StdStats.mean(threshold);
+        this.stdDev = StdStats.stddev(threshold);
+
+        // Compute and store confidenceHi and confidenceLo
+        double common = (1.96 * stdDev / Math.sqrt(t));
+        confidenceLo = mean - common;
+        confidenceHi = mean + common;
 	}
 
 	public double mean(){
-		double sum = 0.0;
 
-		for(int i = 0; i < t; i++){
-			sum += (double)threshold[i] / (n * n);
-		}
-
-		return sum / ((double)t);
+        return mean;
 	}
 
 	public double stddev(){
-		double sum = 0.0;
-		double sampleMean = mean();
 
-		for(int i = 0; i < t; i++){
-			double temp = ((double)(threshold[i]) / (double)(n*n)) - sampleMean;
-			sum += (temp * temp);
-		}
-
-		if(t > 1)
-			return Math.sqrt(sum / (t - 1));
-
-		return Math.sqrt(sum);
+        return  stdDev;
 	}
 
 	public double confidenceLo(){
-		double sampleMean = mean();
-		double sampleStddev = stddev();
 
-		return (sampleMean - (1.96 * sampleStddev / Math.sqrt(t)));
+        return confidenceLo;
 	}
 
 	public double confidenceHi(){
-		double sampleMean = mean();
-		double sampleStddev = stddev();
 
-		return (sampleMean + (1.96 * sampleStddev / Math.sqrt(t)));
+        return confidenceHi;
 	}
 
-	public void runSimulation(){
+	private void runSimulation(){
 
 		Percolation p;
 		int openSites;
 		int i, j;
-		int elements;
-		boolean opened;
 
+        // Perform 't' simulation steps
 		for(int k = 0; k < t; k++){
 
+            // Initialize values for the current simulation run
 			p = new Percolation(n);
 			openSites = 0;
 
-			elements = n * n;
+            while(p.percolates() == false){
 
-			while(elements > 0){
+                // Generate i and j at random (for opening)
+                // Indices are generated as 1-indexed
+                i = StdRandom.uniform(1, n + 1);
+                j = StdRandom.uniform(1, n + 1);
 
-				opened = false;
-				
-				i = randInt(0, n-1);
-				j = randInt(0, n-1);
+                // Open (i,j) if it is not yet open
+                if(p.isOpen(i, j) == false) {
 
-				if(!p.isOpen(i, j)){
-					
-					p.open(i, j);
-					openSites++;
+                    openSites++;
+                    p.open(i, j);
 
-					opened = true;
+                }
 
-				} else if(!p.isOpen(j, i)){
+                // Optimize generation of random numbers - since it is the bottleneck
+                // Try to use the generated ones in a reverse fashion
+                // Open (j,i) if it is not yet open
+                // Will this affect the randomness? - Check
+                if(p.isOpen(j, i) == false) {
 
-					p.open(j, i);
-					openSites++;
+                    openSites++;
+                    p.open(j, i);
 
-					opened = true;
-				}
+                }
+            }
 
-				if(opened && p.percolates()){
-					threshold[k] = openSites;
-					break;
-				}
-
-				if(opened)	elements--;
-			}
+            threshold[k] = openSites;
 		}
 	}
 
-	private int randInt(int min, int max) {
-		int randomNum = random.nextInt((max - min) + 1) + min;
-		return randomNum;
-	}
+    public static void main(String[] args){
 
-	public static void main(String[] args) 
-		throws java.lang.IndexOutOfBoundsException, java.lang.IllegalArgumentException, java.lang.NumberFormatException{
+        // Debug use case
+//        if(args.length == 0) {
+//            args = new String[2];
+//            args[0] = "20";
+//            args[1] = "100";
+//        }
 
-		if(args.length == 2){
+        if(args.length == 2){
 
-			try{
+            try{
 
-				int n = Integer.parseInt(args[0]);
-				int t = Integer.parseInt(args[1]);
+                // Read args
+                int n = Integer.parseInt(args[0]);
+                int t = Integer.parseInt(args[1]);
 
-				if (n <= 0 || t <= 0){
-					throw new java.lang.IllegalArgumentException("n = " + n + ", t = " + t);
-				}
+                // Validate args
+                if (n <= 0 || t <= 0){
+                    throw new IllegalArgumentException("n = " + n + ", t = " + t);
+                }
 
-				PercolationStats ps = new PercolationStats(n, t);
-				ps.runSimulation();
+                // Initialize object
+                // Simulation will be performed immediately upon init
+                PercolationStats ps = new PercolationStats(n, t);
 
-				System.out.println("mean\t= " + ps.mean());
-				System.out.println("stddev\t= " + ps.stddev());
-				System.out.println("95% confidence interval\t= " + ps.confidenceLo() + ", " + ps.confidenceHi());
+                // Output stats from simulation run
+                System.out.println("mean\t= " + ps.mean());
+                System.out.println("stddev\t= " + ps.stddev());
+                System.out.println("95% confidence interval\t= " + ps.confidenceLo() + ", " + ps.confidenceHi());
 
-			} catch(java.lang.NumberFormatException ex){
-				throw ex;
-			} catch(java.lang.IllegalArgumentException ex){
-				throw ex;
-			}
+            } catch(NumberFormatException ex){
+                throw ex;
+            } catch(IllegalArgumentException ex){
+                throw ex;
+            }
 
-		}
-
-	}
+        }
+    }
 }
