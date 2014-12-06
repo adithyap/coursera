@@ -7,9 +7,12 @@ public class Solver
     //region "Fields"
 
     // Private fields
-    private MinPQ<TraceableBoard> _initialGameTree;
-    private MinPQ<TraceableBoard> _twinGameTree;
+
+    private MinPQ<TraceableBoard> _gameTree;
     private TraceableBoard _solutionBoard;
+
+    private Board _initial;
+    private Board _twin;
 
     private int _moves;
 
@@ -142,30 +145,24 @@ public class Solver
     public Solver(Board initial)
     {
         // Find a solution to the initial board (using the A* algorithm)
-
         initializeObjects(initial);
-
-        solveBoards();
+        solveBoard();
     }
 
     private void initializeObjects(Board initial)
     {
         // Stop here if initial is null :D
-        if(initial == null)
+        if (initial == null)
             throw new NullPointerException("Initial board is null");
 
-        // Initialize PQ and insert initial
-        _initialGameTree = new MinPQ<TraceableBoard>();
-        _initialGameTree.insert(new TraceableBoard(initial, null));
+        // Store initial board and it's twin
+        _initial = initial;
+        _twin = initial.twin();
 
-        // Initialize PQ and insert initial board's twin
-        _twinGameTree = new MinPQ<TraceableBoard>();
-        _twinGameTree.insert(new TraceableBoard(initial.twin(), null));
-
-        // Init board as unsolvable - is this required??
-        _moves = INVALID_MOVES;
-
-        printTrace("Initialization Complete");
+        // Initialize PQ and insert initial and it's twin
+        _gameTree = new MinPQ<TraceableBoard>();
+        _gameTree.insert(new TraceableBoard(_initial, null));
+        _gameTree.insert(new TraceableBoard(_twin, null));
     }
 
     //endregion
@@ -173,11 +170,10 @@ public class Solver
 
     //region "Solver"
 
-    private void solveBoards()
+    private void solveBoard()
     {
-
         // Handle is already goal case
-        if(_initialGameTree.min().isGoal())
+        if(_initial.isGoal())
         {
             _moves = 0;
             return;
@@ -187,29 +183,33 @@ public class Solver
         {
             TraceableBoard lastBoard;
 
-            // Move original board
-            lastBoard = moveSingleStep(_initialGameTree);
+            // Move board
+            lastBoard = moveSingleStep(_gameTree);
 
             if(lastBoard.isGoal())
             {
-                // Goal Reached for initial
-                _solutionBoard = lastBoard;
-                computeMinimumMoves(lastBoard);
-                break;
+                Board startingBoard = getStartingBoard(lastBoard);
+
+                if(startingBoard.equals(_initial))
+                {
+                    // Board got solved
+                    _solutionBoard = lastBoard;
+                    computeMinimumMoves(lastBoard);
+                    break;
+                }
+                else if(startingBoard.equals(_twin))
+                {
+                    // No solution
+                    _moves = INVALID_MOVES;
+                    break;
+                }
+                else
+                {
+                    // No case to fall here
+                    printTrace("Invalid case encountered, root parent is neither initial nor twin");
+                    break;
+                }
             }
-
-            // Move twin board
-            lastBoard = moveSingleStep(_twinGameTree);
-
-            if(lastBoard.isGoal())
-            {
-                // Goal Reached for twin
-                // Invalidate solution
-                _moves = INVALID_MOVES;
-                break;
-            }
-
-//            printTrace("Completed move " + _moves);
         }
     }
 
@@ -259,6 +259,14 @@ public class Solver
         {
             return null;
         }
+    }
+
+    private Board getStartingBoard(TraceableBoard board)
+    {
+        while (board != null && board.PARENT != null)
+            board = board.PARENT;
+
+        return board.BOARD;
     }
 
     private void computeMinimumMoves(TraceableBoard state)
@@ -352,13 +360,13 @@ public class Solver
 //            blocks = new int[][]{{4, 1, 3}, {0, 2, 6}, {7, 5, 8}};
 
             // Solvable, 11 steps
-            blocks = new int[][]{{1, 0, 2}, {7, 5, 4}, {8, 6, 3}};
+//            blocks = new int[][]{{1, 0, 2}, {7, 5, 4}, {8, 6, 3}};
 
             // Unsolvable
 //            blocks = new int[][]{{1, 2, 3}, {4, 5, 6}, {8, 7, 0}};
 
             // Unsolvable board's twin
-//            blocks = new int[][]{{2, 1, 3}, {4, 5, 6}, {8, 7, 0}};
+            blocks = new int[][]{{2, 1, 3}, {4, 5, 6}, {8, 7, 0}};
         }
         else
         {
